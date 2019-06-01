@@ -315,9 +315,6 @@
     <None Include="stm32.xml">
       <Filter>VisualGDB settings</Filter>
     </None>
-    <ClCompile Include="ramdisk.c">
-      <Filter>Source files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\..\Program Files (x86)\SEGGER\JLink\Samples\RTT\SEGGER_RTT_V646\RTT\SEGGER_RTT.c">
       <Filter>Source files\rtt</Filter>
     </ClCompile>

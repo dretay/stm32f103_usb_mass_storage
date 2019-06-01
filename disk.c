@@ -32,7 +32,7 @@ static u8* FILE_SECTOR = &disk_buffer[0x600];
 
 uc8 BOOT_SEC[SECTOR_SIZE] = {
 	0xEB, 0x3C, 0x90, 								// code to jump to the bootstrap code
-	0x4D, 0x53, 0x44, 0x4F, 0x53, 0x35, 0x2E, 0x30, // OEM ID
+	'm', 'k', 'd', 'o', 's', 'f', 's', 0x00,		// OEM ID
 	0x00, 0x02, 									// bytes per sector
 	0x01, 											// sectors per cluster
 	0x08, 0x00,										// # of reserved sectors
@@ -49,9 +49,8 @@ uc8 BOOT_SEC[SECTOR_SIZE] = {
     0x00, 											// reserved
     0x29, 											// extended boot signature
     0xA2, 0x98, 0xE4, 0x6C,							// volume serial number
-    0x45, 0x53, 0x31, 0x32, 0x30,					// volume label
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x46, 0x41, 0x54, 0x31, 0x32, 0x20, 0x20, 0x20,	// filesystem type
+    'R','A','M','D','I','S','K',' ',' ',' ',' ',	// volume label    
+    'F', 'A', 'T', '1', '2', ' ', ' ', ' '			// filesystem type
 };
 
 //util functions
