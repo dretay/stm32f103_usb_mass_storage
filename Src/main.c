@@ -50,6 +50,7 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 #include "usb_device.h"
+#include "application.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -92,7 +93,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	Application.init();
 
   /* USER CODE END Init */
 

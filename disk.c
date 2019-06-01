@@ -4,15 +4,13 @@
 //constants
 #define SECTOR_SIZE 512
 #define SECTOR_CNT  4096
+#define FILE_ENTRY_CNT 4
 static uc32 APP_BASE = ADDR_FLASH_PAGE_111;
-static uc8 CONFIG_CONT = 4; //todo: what are you?
-static uc8 ROW_CONT = 35; //todo: what are you?
-static uc8 FILE_CONT = 254;//todo: what are you?
-static const char *gKey_words[] = { "StartAngle", "Gear", "MotorTimeCnt", "Ver" };
-static const char *gDef_set[] = { "StartAngle=2", "Gear=0", "MotorTimeCnt=0", "Ver=1.7a" };
-static const char *gSet_range[] = { "      #(2~10)\r\n", "            #(0~5)\r\n", "    #ReadOnly\r\n", "           #ReadOnly\r\n" };
+static uc8 FILE_ROW_CNT = 35;
+static uc8 FILE_CHAR_CNT = 254;
 static uc32 VOLUME = 0x40DD8D18;
-static const u8 fat_data[] = { 0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }; //todo: what are you?
+static const u8 fat_data[] = { 0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+static u8 CONFIG_FILENAME[] = "CONFIG  TXT";
 
 //globals
 static u8   disk_buffer[0x2600]; 
@@ -20,7 +18,8 @@ static u32  disk_buffer_temp[(SECTOR_SIZE + 32 + 28) / 4];
 static u8  *pdisk_buffer_temp = (u8*) &disk_buffer_temp[0];
 static u8 file_buffer[SECTOR_SIZE]; 
 static u8 page_dirty_mask[16];
-static INFO_SYS info_def = { "1.7a", 0, 0, 0 };
+
+static FILE_ENTRY entries[FILE_ENTRY_CNT];
 
 //pointers
 static u8* FAT1_SECTOR = &disk_buffer[0x000];
@@ -166,96 +165,19 @@ u8 rewrite_all_flash_pages(void)
 	return HAL_OK;
 }
 
-void set_version(u8 str[], u8 k)
-{
-	u32 set_ver = 0;
-
-	switch (k) {
-	case 0:
-		set_ver = (str[0] - 48) * 100 + (str[1] - 48) * 10 + (str[2] - 48);
-		if (str[1] == '0' && str[0] == '1') set_ver = 10;
-		else  set_ver = str[0] - 48;
-
-		info_def.start_angle = set_ver;
-		break;
-	case 1:
-		set_ver = (str[0] - 48);
-		info_def.torque_level = set_ver;
-		break;
-	case 2:
-		set_ver = atoi((char const *)str);
-		info_def.moto_timecnt = set_ver;
-		break;
-	default:
-		break;
-	}
-}
-u8 validate_file_line(u8  str[], u8 k)
-{
-	u16 set_ver;
-
-	switch (k) {
-		case 0:
-			//Must be 10
-			if (str[1] == '0' && str[0] != '1')
-			{
-				return 0; 
-			}
-			//Greater than 10
-			if (str[1] > '0' && str[1] <= '9')
-			{
-				return 0; 
-			}
-			// 2 - 9
-			if(str[1] <= '0' && str[1] >= '9' && str[0] < '2') 
-			{			
-				return 0; 
-			}
-			break;
-		case 1:
-			//Cannot be greater than 10
-			if (str[1] <= '9' && str[1] > '0')
-			{
-				return 0; 
-			}
-			//Cannot be greater than 4, not less than 1
-			if (str[0] >= '5' || str[0] < '0')
-			{
-				return 0; 
-			}
-			break;
-		case 2:
-			set_ver = atoi((char const *)str);
-			if (set_ver != info_def.moto_timecnt)
-			{
-				return 0;
-			}
-			break;
-		case 3:
-			if (info_def.ver[0] == str[0] && info_def.ver[1] == str[1] && info_def.ver[2] == str[2])
-			{
-				return 1;
-			}			
-			return 0;		
-			break;
-		default:
-			break;
-	}
-	return 1;
-}
 u8 validate_file(u8* p_file, u16 root_addr)
 {
 	u32 i, j, k, m, flag;
-	u8 t_p[CONFIG_CONT][ROW_CONT];
-	u8 str[FILE_CONT];
+	u8 t_p[FILE_ENTRY_CNT][FILE_ROW_CNT];
+	u8 str[FILE_CHAR_CNT];
 	u8 illegal = 0;
     
 	m = 0;
 	j = 0;
 
-	memset(t_p, 0x00, CONFIG_CONT * ROW_CONT);
+	memset(t_p, 0x00, FILE_ENTRY_CNT * FILE_ROW_CNT);
 	memcpy((u8*)file_buffer, p_file, SECTOR_SIZE);
-	for (k = 0; k < CONFIG_CONT; k++)
+	for (k = 0; k < FILE_ENTRY_CNT; k++)
 	{
 		//Take the CONFIG_CONT line
 	    j = 0;
@@ -268,7 +190,7 @@ u8 validate_file(u8* p_file, u16 root_addr)
 			}
 			else 
 			{
-				if (j < ROW_CONT)
+				if (j < FILE_ROW_CNT)
 				{
 					t_p[k][j++] = file_buffer[i];					
 				}
@@ -278,13 +200,13 @@ u8 validate_file(u8* p_file, u16 root_addr)
 		t_p[k][j] = '\0';
 		m = i + 2;
 	}
-	for (k = 0; k < CONFIG_CONT; k++) {
+	for (k = 0; k < FILE_ENTRY_CNT; k++) {
 		//Analyze the CONFIG_CONT line
-	    if(memcmp(t_p[k], gKey_words[k], strlen(gKey_words[k])) == 0) 
+	    if(memcmp(t_p[k], entries[k].entry, strlen(entries[k].entry)) == 0) 
 		{
 			//Find keywords
 			flag = 0;
-			for (i = strlen(gKey_words[k]); i < strlen((char *)t_p[k]); i++) 
+			for (i = strlen(entries[k].entry); i < strlen((char *)t_p[k]); i++) 
 			{
 				//Is the setting value legal?
 			    if((t_p[k][i] >= '0' && t_p[k][i] <= '9') || t_p[k][i] == '.') 
@@ -299,32 +221,17 @@ u8 validate_file(u8* p_file, u16 root_addr)
 					break;
 				}
 			}
-			if (flag && validate_file_line(t_p[k] + i, k)) 
+			if (flag && entries[k].validate(t_p[k] + i)) 
 			{
-				//The setting value is legal
-			    set_version(t_p[k] + i, k);
-				if (k == 0) 
-				{
-					sprintf((char *)t_p[k], "StartAngle=%d", info_def.start_angle);
-				}        
-				else if (k == 1)
-				{
-					sprintf((char *)t_p[k], "Gear=%d", info_def.torque_level);
-				}
-				else if (k == 2)
-				{  
-					sprintf((char *)t_p[k], "MotorTimeCnt=%d", info_def.moto_timecnt);
-				}
-				else if (k == 3)
-				{  
-					sprintf((char *)t_p[k], "Ver=%s", info_def.ver);
-				}
+				//The setting value is legal			    
+				entries[k].update(t_p[k] + i);
+				entries[k].print((char *)t_p[k]);				
 			}
 			else 
 			{
 				//Setting value is illegal
 				memset(t_p[k], 0, strlen((char *)t_p[k]));
-				memcpy(t_p[k], gDef_set[k], strlen((char *)gDef_set[k]));
+				memcpy(t_p[k], entries[k].default_line, strlen((char *)entries[k].default_line));
 				illegal = 1;
 			}
 		} 
@@ -332,17 +239,17 @@ u8 validate_file(u8* p_file, u16 root_addr)
 		{
 			//keyword not found 
 			memset(t_p[k], 0, strlen((char *)t_p[k]));
-			memcpy(t_p[k], gDef_set[k], strlen((char *)gDef_set[k]));
+			memcpy(t_p[k], entries[k].default_line, strlen((char *)entries[k].default_line));
 			illegal = 1;
 		}
 	}
         
-	memset(str, 0x00, FILE_CONT);
+	memset(str, 0x00, FILE_CHAR_CNT);
 	m = 0;
-	for (k = 0; k < CONFIG_CONT; k++) 
+	for (k = 0; k < FILE_ENTRY_CNT; k++) 
 	{
 		strcat((char *)str, (char *)t_p[k]);
-		strcat((char *)str, (char *)gSet_range[k]);
+		strcat((char *)str, (char *)entries[k].comment);
 	}
 	m = strlen((char *)str);
 	disk_buffer[FLASH_PAGE_SIZE + root_addr * 32 + 0x1C] = m % 256;
@@ -387,7 +294,7 @@ static u8 flush_file(void)
     
 	root_addr = 0;
     
-	if ((p_file = find_file("CONFIG  TXT", &file_len, &root_addr))) 
+	if ((p_file = find_file((u8*)&CONFIG_FILENAME, &file_len, &root_addr))) 
 	{
 		illegal = validate_file(p_file, root_addr);
 		if (illegal) 
@@ -400,17 +307,17 @@ static u8 flush_file(void)
 	}
 	else {
 		memset(disk_buffer, 0x00, 0x2600);
-		memcpy(ROOT_SECTOR, "CONFIG  TXT", 0xC);
+		memcpy(ROOT_SECTOR, &CONFIG_FILENAME, 0xC);
 		memcpy(FAT1_SECTOR, fat_data, 6);
 		memcpy(FAT2_SECTOR, fat_data, 6);
 
 		m = 0;
-		for (k = 0; k < CONFIG_CONT; k++) 
+		for (k = 0; k < FILE_ENTRY_CNT; k++) 
 		{
-			memcpy(FILE_SECTOR + m, gDef_set[k], strlen((char *)gDef_set[k]));
-			m += strlen((char *)gDef_set[k]);
-			memcpy(FILE_SECTOR + m, gSet_range[k], strlen((char *)gSet_range[k]));
-			m += strlen((char *)gSet_range[k]);
+			memcpy(FILE_SECTOR + m, entries[k].default_line, strlen((char *)entries[k].default_line));
+			m += strlen((char *)entries[k].default_line);
+			memcpy(FILE_SECTOR + m, entries[k].comment, strlen((char *)entries[k].comment));
+			m += strlen((char *)entries[k].comment);
 		}
         
 		disk_buffer[0x40B] = 0x0;   //attributes
@@ -419,7 +326,7 @@ static u8 flush_file(void)
 		disk_buffer[0x41C] = m;  //file size
 		if(rewrite_all_flash_pages() != HAL_OK)
 		{
-			_Error_Handler(__FILE__, __LINE__);
+			_ERROR("Error rewriting flash", NULL);
 		}
 		
 	}   
@@ -508,7 +415,7 @@ u8 write_sector(u8* buff, u32 diskaddr, u32 length)//PC Save data call
 			for (i = 0; i < 16; i++) 
 			{
 				memcpy((u8*)ver, (u8*)(pdisk_buffer_temp), 12);
-				if (memcmp(ver, "CONFIG  TXT", 11) == 0) 
+				if (memcmp(ver, CONFIG_FILENAME, 11) == 0) 
 				{
 					Config_flag = pdisk_buffer_temp[0x1A];
 					config_filesize = pdisk_buffer_temp[0x1C];
@@ -579,11 +486,24 @@ static void init(void)
 	flush_file();
 	_DEBUG("Finished initilization", NULL);
 }
+static void register_entry(int idx, char* entry, char* default_val, char* comment, void* validator, void* updater, void* printer)
+{	
+	if (idx <= FILE_ENTRY_CNT)
+	{	
+		strncpy(entries[idx].entry, entry, MIN(MAX_ENTRY_LABEL_LENGTH, strlen(entry)));		
+		snprintf(entries[idx].comment, MAX_ENTRY_LABEL_LENGTH, "\t%s\r\n", comment);
+		snprintf(entries[idx].default_line, MAX_ENTRY_LABEL_LENGTH*3, "%s=%s", entry, default_val);
+		entries[idx].validate = validator;		
+		entries[idx].update = updater;		
+		entries[idx].print = printer;		
+	}	
+}
 const struct disk Disk= { 
 	.init = init,	
 	.Disk_SecWrite = write_sector,
 	.Disk_SecRead = read_sector,
 	.get_sector_size = get_sector_size,
 	.get_sector_count = get_sector_count,
+	.register_entry = register_entry,
 };
 

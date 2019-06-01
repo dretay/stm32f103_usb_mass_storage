@@ -324,6 +324,9 @@
     <ClCompile Include="disk.c">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="application.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="flashpages.h">
@@ -345,6 +348,12 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="types_shortcuts.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="application.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="minmax.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>
