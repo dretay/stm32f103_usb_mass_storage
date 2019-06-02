@@ -2,7 +2,7 @@
 
 ### Overview ###
 
-Sometimes when developing a uController project it is convenient to allow variables to be edited without needing to recomplile code. In such cases it's typical to either attach an EEPROM or set aside a portion of the internal uController Flash an simulate an eeprom. Both of these approaches are limited in that they require developer tools (either a programmer or something like a buspirate) to query and update configuration values. Thus I wrote this simple library that exposes a very simple FAT12 filesystem over usb that contains a single `config.txt` file. This file can have entries in it corresponding to configuration values that an end-user should be able to edit. 
+Sometimes when developing a uController project it is convenient to allow variables to be edited without needing to recomplile code. In such cases it's typical to either attach an EEPROM or set aside a portion of the internal uController Flash an simulate an eeprom. Both of these approaches are limited in that they require developer tools (either a programmer or something like a buspirate) to query and update configuration values. Thus I wrote this simple library that exposes a FAT12 filesystem over usb that contains a single `config.txt` file. This file can have entries in it corresponding to configuration values that an end-user should be able to edit. 
 ![](https://github.com/dretay/stm32f103_usb_mass_storage/blob/master/screenshot.png)
 
 ### Main Features ###
