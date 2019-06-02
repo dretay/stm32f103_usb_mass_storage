@@ -13,7 +13,7 @@ Sometimes when developing a uController project it is convenient to allow variab
 
 ### Summary ###
 Make sure to check out the full example [here](https://github.com/dretay/stm32f103_usb_mass_storage/blob/master/application.c) however when everything is set up all you need to do to create a configuration file is call helpers like this:
-```
+```c
 Disk.register_entry("example1", "2", "#(2~10)", &example1_validator, &example1_updater, &example1_printer);
 Disk.register_entry("example2", "0", "#(0~5)", &example2_validator, &example2_updater, &example2_printer);	
 ```
@@ -44,7 +44,7 @@ If you do not use the same flash settings I used here you'll probably also need 
 static uc32 APP_BASE = ADDR_FLASH_PAGE_111;
 ```
 Finally just create some file entries. 
-```
+```c
 bool example1_validator(u8  str[])
 {
 	//Must be 10
