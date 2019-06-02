@@ -40,7 +40,7 @@ SECTIONS
 	...
 ```
 If you do not use the same flash settings I used here you'll probably also need to modify the starting page of flash that should be used [here](https://github.com/dretay/stm32f103_usb_mass_storage/blob/master/disk.c#L8).
-```
+```c
 static uc32 APP_BASE = ADDR_FLASH_PAGE_111;
 ```
 Finally just create some file entries. 
