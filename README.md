@@ -12,7 +12,7 @@ Both of these approaches are limited in that they require developer tools (eithe
 - Can pass in validators to ensure user-entered data is valid. 
 - When a user attempts to save a bad entry the file is "restored" to a set of reasonable default values. 
 
-### Summaary ###
+### Summary ###
 Make sure to check out the full example [here](https://github.com/dretay/stm32f103_usb_mass_storage/blob/master/application.c) however when everything is set up all you need to do to create a configuration file is call helpers like this:
 ```
 Disk.register_entry("example1", "2", "#(2~10)", &example1_validator, &example1_updater, &example1_printer);
