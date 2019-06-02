@@ -356,6 +356,9 @@
     <ClInclude Include="minmax.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="bithelper.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <LinkerScript Include="STM32F103C8_flash.lds">

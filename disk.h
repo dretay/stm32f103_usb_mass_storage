@@ -7,15 +7,11 @@
 #include "LOG.h"
 #include "types_shortcuts.h"
 #include "minmax.h"
+#include "bithelper.h"
 #include <stdbool.h>
 
 #define MAX_ENTRY_LABEL_LENGTH 32
-typedef struct {
-	u8 ver[16];
-	u8 start_angle;   //Starting angle
-	u8 torque_level;   //Torque level
-	u32 moto_timecnt;   //Motor rotation time
-}INFO_SYS;
+
 
 typedef struct {
 	char entry[MAX_ENTRY_LABEL_LENGTH];
@@ -32,7 +28,7 @@ struct disk {
 	void(*Disk_SecRead)(u8* pbuffer, u32 disk_addr);
 	u32(*get_sector_size)(void);
 	u32(*get_sector_count)(void);
-	void(*register_entry)(int idx, char* entry, char* default_val, char* comment, void* validator, void* updater, void* printer);	
+	bool(*register_entry)(char* entry, char* default_val, char* comment, void* validator, void* updater, void* printer);	
 };
 
 extern const struct disk Disk;

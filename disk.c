@@ -13,11 +13,12 @@ static const u8 fat_data[] = { 0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 static u8 CONFIG_FILENAME[] = "CONFIG  TXT";
 
 //globals
-static u8   disk_buffer[0x2600]; 
-static u32  disk_buffer_temp[(SECTOR_SIZE + 32 + 28) / 4];     
-static u8  *pdisk_buffer_temp = (u8*) &disk_buffer_temp[0];
+static u8  disk_buffer[0x2600]; 
+static u32 disk_buffer_temp[(SECTOR_SIZE + 32 + 28) / 4];     
+static u8 *pdisk_buffer_temp = (u8*) &disk_buffer_temp[0];
 static u8 file_buffer[SECTOR_SIZE]; 
 static u8 page_dirty_mask[16];
+static u32 entry_usage_mask = 0;
 
 static FILE_ENTRY entries[FILE_ENTRY_CNT];
 
@@ -486,8 +487,19 @@ static void init(void)
 	flush_file();
 	_DEBUG("Finished initilization", NULL);
 }
-static void register_entry(int idx, char* entry, char* default_val, char* comment, void* validator, void* updater, void* printer)
+static u32 get_unused_idx() {
+	u32 i = 0;
+	for (i = 0; i < FILE_ENTRY_CNT; i++) {
+		if (bitRead(entry_usage_mask, i) == 0) {
+			bitSet(entry_usage_mask, i);
+			return i;
+		}	
+	} 
+	return -1;
+}
+static bool register_entry(char* entry, char* default_val, char* comment, void* validator, void* updater, void* printer)
 {	
+	u32 idx = get_unused_idx();
 	if (idx <= FILE_ENTRY_CNT)
 	{	
 		strncpy(entries[idx].entry, entry, MIN(MAX_ENTRY_LABEL_LENGTH, strlen(entry)));		
@@ -495,8 +507,10 @@ static void register_entry(int idx, char* entry, char* default_val, char* commen
 		snprintf(entries[idx].default_line, MAX_ENTRY_LABEL_LENGTH*3, "%s=%s", entry, default_val);
 		entries[idx].validate = validator;		
 		entries[idx].update = updater;		
-		entries[idx].print = printer;		
-	}	
+		entries[idx].print = printer;				
+		return true;
+	}
+	return false;
 }
 const struct disk Disk= { 
 	.init = init,	

@@ -1,8 +1,7 @@
 #include "application.h"
 
-static INFO_SYS info_def = { "1.7a", 0, 0, 0 };
-
-bool startangle_validator(u8  str[])
+u8 example1, example2;
+bool example1_validator(u8  str[])
 {
 	//Must be 10
 	if(str[1] == '0' && str[0] != '1')
@@ -21,20 +20,20 @@ bool startangle_validator(u8  str[])
 	}	
 	return true;
 }
-void startangle_updater(u8  str[])
+void example1_updater(u8  str[])
 {
-	u32 set_ver = (str[0] - 48) * 100 + (str[1] - 48) * 10 + (str[2] - 48);
-	if (str[1] == '0' && str[0] == '1') set_ver = 10;
-	else  set_ver = str[0] - 48;
+	u32 set_value = (str[0] - 48) * 100 + (str[1] - 48) * 10 + (str[2] - 48);
+	if (str[1] == '0' && str[0] == '1') set_value = 10;
+	else  set_value = str[0] - 48;
 
-	info_def.start_angle = set_ver;
+	example1 = set_value;
 }
-void startangle_printer(char *buffer)
+void example1_printer(char *buffer)
 {
-	sprintf(buffer, "StartAngle=%d", info_def.start_angle);
+	sprintf(buffer, "example1=%d", example1);
 }
 
-bool gear_validator(u8  str[])
+bool example2_validator(u8  str[])
 {
 	//Cannot be greater than 10
 	if(str[1] <= '9' && str[1] > '0')
@@ -48,53 +47,21 @@ bool gear_validator(u8  str[])
 	}
 	return true;
 }
-void gear_updater(u8  str[])
+void example2_updater(u8  str[])
 {
-	u32 set_ver = (str[0] - 48);
-	info_def.torque_level = set_ver;
+	u32 set_value = (str[0] - 48);
+	example2 = set_value;
 }
-void gear_printer(char *buffer)
+void example2_printer(char *buffer)
 {
-	sprintf(buffer, "Gear=%d", info_def.torque_level);
-}
-
-bool motortimecnt_validator(u8  str[])
-{
-	u16 set_ver = atoi((char const *)str);
-	if (set_ver != 0)
-	{
-		return false;
-	}
-	return true;
-}
-void motortimecnt_updater(u8  str[])
-{
-	u32 set_ver = atoi((char const *)str);
-	info_def.moto_timecnt = set_ver;
-}
-void motortimecnt_printer(char *buffer)
-{
-	sprintf(buffer, "MotorTimeCnt=%d", info_def.moto_timecnt);
+	sprintf(buffer, "example2=%d", example2);
 }
 
-bool ver_validator(u8  str[])
-{
-	return true;
-}
-void ver_updater(u8  str[])
-{
-	NULL;
-}
-void ver_printer(char *buffer)
-{
-	sprintf(buffer, "Ver=%s", info_def.ver);
-}
+
 static void init(void)
 {
-	Disk.register_entry(0, "StartAngle", "2", "#(2~10)", &startangle_validator, &startangle_updater, &startangle_printer);
-	Disk.register_entry(1, "Gear", "0", "#(0~5)", &gear_validator, &gear_updater, &gear_printer);
-	Disk.register_entry(2, "MotorTimeCnt", "0", "#ReadOnly", &motortimecnt_validator, &motortimecnt_updater, &motortimecnt_printer);
-	Disk.register_entry(3, "Ver", "1.7a", "#ReadOnly", &ver_validator, &ver_updater, &ver_printer);
+	Disk.register_entry("example1", "2", "#(2~10)", &example1_validator, &example1_updater, &example1_printer);
+	Disk.register_entry("example2", "0", "#(0~5)", &example2_validator, &example2_updater, &example2_printer);	
 }
 
 const struct application Application= { 
