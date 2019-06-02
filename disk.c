@@ -144,7 +144,8 @@ u8 rewrite_all_flash_pages(void)
 	{
 		_ERROR("Unable to unlock flash: ", status);
 	}
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) 
+	{
 		result = erase_flash_page(APP_BASE + i * FLASH_PAGE_SIZE);
 		if (result != HAL_OK) 
 		{
@@ -270,10 +271,12 @@ u8* find_file(u8* pfilename, u16* pfilelen, u16* root_addr)
 
 	pdiraddr = ROOT_SECTOR;
 
-	for (n = 0; n < 16; n++) {
+	for (n = 0; n < 16; n++) 
+	{
 		memcpy(str_name, pdiraddr, 11);
 		Upper(str_name, 11);
-		if (memcmp(str_name, pfilename, 11) == 0) {
+		if (memcmp(str_name, pfilename, 11) == 0) 
+		{
 			memcpy((u8*)pfilelen, pdiraddr + 0x1C, 2);
 			memcpy((u8*)&sector, pdiraddr + 0x1A, 2);
 			return (u8*)FILE_SECTOR + (sector - 2) * SECTOR_SIZE;
@@ -489,8 +492,10 @@ static void init(void)
 }
 static u32 get_unused_idx() {
 	u32 i = 0;
-	for (i = 0; i < FILE_ENTRY_CNT; i++) {
-		if (bitRead(entry_usage_mask, i) == 0) {
+	for (i = 0; i < FILE_ENTRY_CNT; i++) 
+	{
+		if (bitRead(entry_usage_mask, i) == 0) 
+		{
 			bitSet(entry_usage_mask, i);
 			return i;
 		}	
